@@ -422,22 +422,21 @@ void CrmOrch::getResAvailableCounters()
 
     for (auto &res : m_resourcesMap)
     {
+        sai_attribute_t attr;
+        attr.id = crmResSaiAvailAttrMap.at(res.first);
+
         switch (res.first)
         {
-            case CRM_IPV4_ROUTE:
-            case CRM_IPV6_ROUTE:
-            case CRM_IPV4_NEXTHOP:
-            case CRM_IPV6_NEXTHOP:
-            case CRM_IPV4_NEIGHBOR:
-            case CRM_IPV6_NEIGHBOR:
-            case CRM_NEXTHOP_GROUP_MEMBER:
-            case CRM_NEXTHOP_GROUP:
-            case CRM_FDB_ENTRY:
-            case SAI_SWITCH_ATTR_AVAILABLE_MPLS_INSEG_ENTRY:
+            case CrmResourceType::CRM_IPV4_ROUTE:
+            case CrmResourceType::CRM_IPV6_ROUTE:
+            case CrmResourceType::CRM_IPV4_NEXTHOP:
+            case CrmResourceType::CRM_IPV6_NEXTHOP:
+            case CrmResourceType::CRM_IPV4_NEIGHBOR:
+            case CrmResourceType::CRM_IPV6_NEIGHBOR:
+            case CrmResourceType::CRM_NEXTHOP_GROUP_MEMBER:
+            case CrmResourceType::CRM_NEXTHOP_GROUP:
+            case CrmResourceType::CRM_FDB_ENTRY:
             {
-                sai_attribute_t attr;
-                attr.id = crmResSaiAvailAttrMap.at(res.first);
-
                 sai_status_t status = sai_switch_api->get_switch_attribute(gSwitchId, 1, &attr);
                 if (status != SAI_STATUS_SUCCESS)
                 {
@@ -450,12 +449,9 @@ void CrmOrch::getResAvailableCounters()
                 break;
             }
 
-            case CRM_ACL_TABLE:
-            case CRM_ACL_GROUP:
+            case CrmResourceType::CRM_ACL_TABLE:
+            case CrmResourceType::CRM_ACL_GROUP:
             {
-                sai_attribute_t attr;
-                attr.id = crmResSaiAvailAttrMap.at(res.first);
-
                 vector<sai_acl_resource_t> resources(CRM_ACL_RESOURCE_COUNT);
 
                 attr.value.aclresource.count = CRM_ACL_RESOURCE_COUNT;
@@ -483,12 +479,9 @@ void CrmOrch::getResAvailableCounters()
                 break;
             }
 
-            case CRM_ACL_ENTRY:
-            case CRM_ACL_COUNTER:
+            case CrmResourceType::CRM_ACL_ENTRY:
+            case CrmResourceType::CRM_ACL_COUNTER:
             {
-                sai_attribute_t attr;
-                attr.id = crmResSaiAvailAttrMap.at(res.first);
-
                 for (auto &cnt : res.second.countersMap)
                 {
                     sai_status_t status = sai_acl_api->get_acl_table_attribute(cnt.second.id, 1, &attr);
@@ -504,9 +497,9 @@ void CrmOrch::getResAvailableCounters()
                 break;
             }
 
-            case CRM_MPLS_INSEG:
+            case CrmResourceType::CRM_MPLS_INSEG:
             {
-                sai_object_type_t objType = crmResSaiAvailAttrMap.at(res.first);
+                sai_object_type_t objType = static_cast<sai_object_type_t>(crmResSaiAvailAttrMap.at(res.first));
                 uint64_t availCount = 0;
                 sai_status_t status = sai_object_type_get_availability(gSwitchId, objType, 0, nullptr, &availCount);
                 if (status != SAI_STATUS_SUCCESS)
